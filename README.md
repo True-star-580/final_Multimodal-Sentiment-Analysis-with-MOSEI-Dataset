@@ -28,7 +28,7 @@ To download and process the dataset:
 pip install git+https://github.com/CMU-MultiComp-Lab/CMU-MultimodalSDK.git
 
 # Back in project root:
-python src/data/download_data.py
+python src/data/download.py
 python src/data/preprocess.py
 ```
 
