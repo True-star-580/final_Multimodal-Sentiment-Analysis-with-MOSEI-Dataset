@@ -13,13 +13,12 @@ from config import RAW_DATA_DIR, DATASET_NAME, DATASET_URL
 # Set up logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
 def install_mmsdk():
-    # Check if mmsdk is already installed
-    # If not, install it using pip
+    # Check if mmsdk is already installed. If not, install it using pip
     try:
         import mmsdk
         logger.info("CMU-MultimodalSDK is already installed.")
@@ -45,12 +44,12 @@ def download_mosei():
         
         # Define the computational sequences to download
         mosei_highlevel = {
-            'acoustic': DATASET_URL + 'acoustic/CMU_MOSEI_COVAREP.csd',
-            'visual': DATASET_URL + 'visual/CMU_MOSEI_VisualOpenFace2.csd',
-            'language': DATASET_URL + 'language/CMU_MOSEI_TimestampedWords.csd',
+            "acoustic": DATASET_URL + "acoustic/CMU_MOSEI_COVAREP.csd",
+            "visual": DATASET_URL + "visual/CMU_MOSEI_VisualOpenFace2.csd",
+            "language": DATASET_URL + "language/CMU_MOSEI_TimestampedWords.csd",
         }
         mosei_labels = {
-            'labels': DATASET_URL + 'labels/CMU_MOSEI_Labels.csd'
+            "labels": DATASET_URL + "labels/CMU_MOSEI_Labels.csd"
         }
 
         logger.info("Downloading MOSEI high-level features...")
@@ -58,12 +57,12 @@ def download_mosei():
         
         logger.info("Adding labels...")
         mosei_dataset.add_computational_sequences(
-            {'Sentiment Labels': mosei_labels['labels']},
+            {"Sentiment Labels": mosei_labels["labels"]},
             str(dataset_path)
         )
         
         logger.info("Aligning to sentiment labels...")
-        mosei_dataset.align('Sentiment Labels')
+        mosei_dataset.align("Sentiment Labels")
         
         logger.info(f"Dataset successfully downloaded and aligned to {dataset_path}")
         return True
@@ -73,11 +72,12 @@ def download_mosei():
         return False
 
 def main():
+    # Parse command-line arguments
     parser = argparse.ArgumentParser(description="Download CMU-MOSEI dataset")
     parser.add_argument("--force", action="store_true", help="Force re-download even if data exists")
     args = parser.parse_args()
     
-    # Create data directory if it doesn't exist
+    # Create data directory if it doesn"t exist
     RAW_DATA_DIR.mkdir(exist_ok=True, parents=True)
     
     # Install the MultimodalSDK if needed
