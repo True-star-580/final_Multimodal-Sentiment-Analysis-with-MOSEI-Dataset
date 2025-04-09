@@ -25,13 +25,11 @@ To download and process the dataset:
 
 ```bash
 # Clone and set up the SDK
-git clone https://github.com/A2Zadeh/CMU-MultimodalSDK.git
-cd CMU-MultimodalSDK
-pip install -e .
+pip install git+https://github.com/CMU-MultiComp-Lab/CMU-MultimodalSDK.git
 
 # Back in project root:
-python scripts/download_data.py
-python scripts/preprocess.py
+python src/data/download_data.py
+python src/data/preprocess.py
 ```
 
 ---
