@@ -8,7 +8,7 @@ import subprocess
 # Add project root to path
 sys.path.append(str(Path(__file__).resolve().parents[2]))
 
-from config import RAW_DATA_DIR, DATASET_NAME
+from config import RAW_DATA_DIR, DATASET_NAME, DATASET_URL
 
 # Set up logging
 logging.basicConfig(
@@ -45,10 +45,12 @@ def download_mosei():
         
         # Define the computational sequences to download
         mosei_highlevel = {
-            'acoustic': 'http://immortal.multicomp.cs.cmu.edu/CMU-MOSEI/acoustic/CMU_MOSEI_COVAREP.csd',
-            'visual': 'http://immortal.multicomp.cs.cmu.edu/CMU-MOSEI/visual/CMU_MOSEI_VisualOpenFace2.csd',
-            'language': 'http://immortal.multicomp.cs.cmu.edu/CMU-MOSEI/language/CMU_MOSEI_TimestampedWords.csd',
-            'labels': 'http://immortal.multicomp.cs.cmu.edu/CMU-MOSEI/labels/CMU_MOSEI_Labels.csd'
+            'acoustic': DATASET_URL + 'acoustic/CMU_MOSEI_COVAREP.csd',
+            'visual': DATASET_URL + 'visual/CMU_MOSEI_VisualOpenFace2.csd',
+            'language': DATASET_URL + 'language/CMU_MOSEI_TimestampedWords.csd',
+        }
+        mosei_labels = {
+            'labels': DATASET_URL + 'labels/CMU_MOSEI_Labels.csd'
         }
 
         logger.info("Downloading MOSEI high-level features...")
@@ -56,7 +58,7 @@ def download_mosei():
         
         logger.info("Adding labels...")
         mosei_dataset.add_computational_sequences(
-            {'Sentiment Labels': mosei_highlevel['labels']},
+            {'Sentiment Labels': mosei_labels['labels']},
             str(dataset_path)
         )
         
