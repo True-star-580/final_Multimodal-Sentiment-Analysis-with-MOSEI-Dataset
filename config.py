@@ -28,6 +28,7 @@ TEXT_EMBEDDING_DIM = 768  # BERT embedding dimension
 
 # Training parameters
 SEED = 42
+BATCH_SIZE = 32
 
 # Device configuration
 DEVICE = "mps" if torch.backends.mps.is_available() else "cuda" if torch.cuda.is_available() else "cpu" 
