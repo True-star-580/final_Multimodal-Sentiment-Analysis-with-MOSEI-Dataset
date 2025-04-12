@@ -54,7 +54,7 @@ class TransformerVisualEncoder(nn.Module):
             nhead=num_heads,
             dim_feedforward=hidden_dim * 4,
             dropout=dropout_rate,
-            activation='relu',
+            activation="relu",
             batch_first=True
         )
         self.transformer_encoder = nn.TransformerEncoder(
@@ -69,18 +69,8 @@ class TransformerVisualEncoder(nn.Module):
         self.dropout = nn.Dropout(dropout_rate)
     
     def forward(self, x):
-        # Project input to hidden dimension
-        x = self.input_projection(x)
-        
-        # Add batch dimension if needed (for transformer)
-        if len(x.shape) == 2:
-            x = x.unsqueeze(1)  # [batch_size, 1, hidden_dim]
-        
-        # Apply transformer encoder
-        x = self.transformer_encoder(x)
-        
-        # Extract the encoded representation (use the first token)
-        encoded = x[:, 0, :]
+        # Get encoded features
+        encoded = self.get_encoded_features(x)
         
         # Project to sentiment score
         sentiment = self.output_projection(encoded)
