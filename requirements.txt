@@ -1,6 +1,10 @@
 requests
 numpy
 torch
+torchvision
 tqdm
 scikit-learn
 transformers
+matplotlib
+seaborn
+tensorboard
