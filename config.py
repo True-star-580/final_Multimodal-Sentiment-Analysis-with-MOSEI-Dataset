@@ -31,6 +31,9 @@ VISUAL_FEATURE_SIZE = 35  # Facial landmarks
 # Model parameters
 TEXT_EMBEDDING_DIM = 768  # BERT embedding dimension
 HIDDEN_DIM = 256
+NUM_ATTENTION_HEADS = 8
+NUM_TRANSFORMER_LAYERS = 4
+DROPOUT_RATE = 0.3
 
 # Training parameters
 SEED = 42
@@ -39,6 +42,7 @@ LEARNING_RATE = 1e-4
 WEIGHT_DECAY = 1e-5
 NUM_EPOCHS = 50
 EARLY_STOPPING_PATIENCE = 5
+GRADIENT_CLIP_VAL = 1.0
 
 # Device configuration
 DEVICE = "mps" if torch.backends.mps.is_available() else "cuda" if torch.cuda.is_available() else "cpu" 

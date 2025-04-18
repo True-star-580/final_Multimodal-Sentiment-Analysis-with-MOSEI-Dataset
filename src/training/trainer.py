@@ -264,10 +264,4 @@ class Trainer:
         
         logger.info(f"Training completed. Best model at epoch {self.best_epoch}")
         
-        # Load best model for testing
-        self.load_checkpoint()
-        
-        # Test model
-        test_metrics = self.test()
-        
-        return best_val_metrics
+        return self.model, best_val_metrics

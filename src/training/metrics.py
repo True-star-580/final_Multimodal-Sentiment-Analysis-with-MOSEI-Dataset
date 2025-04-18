@@ -7,11 +7,11 @@ import logging
 logger = logging.getLogger(__name__)
 
 def calc_mae(preds, labels):
-    
     return mean_absolute_error(labels, preds)
 
 def calc_correlation(preds, labels):
-    
+    if np.std(preds) == 0 or np.std(labels) == 0:
+        return 0.0
     return np.corrcoef(preds, labels)[0, 1]
 
 def calc_binary_accuracy(preds, labels, threshold=0):
@@ -44,7 +44,7 @@ def calc_multiclass_metrics(preds, labels):
         "multiclass_f1": f1
     }
 
-def evaluate_mosei(model, dataloader, device):
+def get_predictions(model, dataloader, device):
     model.eval()
     all_preds = []
     all_labels = []
@@ -75,6 +75,11 @@ def evaluate_mosei(model, dataloader, device):
     # Concatenate batch results
     all_preds = np.concatenate(all_preds)
     all_labels = np.concatenate(all_labels)
+
+    return all_preds, all_labels
+
+def evaluate_mosei(model, dataloader, device):
+    all_preds, all_labels = get_predictions(model, dataloader, device)
     
     # Calculate metrics
     mae = calc_mae(all_preds, all_labels)

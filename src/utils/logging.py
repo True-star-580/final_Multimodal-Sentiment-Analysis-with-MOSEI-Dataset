@@ -3,6 +3,7 @@ import sys
 import logging
 import time
 from pathlib import Path
+import json
 
 def setup_logging(log_file=None, level=logging.INFO):
     # Configure root logger
@@ -31,13 +32,17 @@ def setup_logging(log_file=None, level=logging.INFO):
         
         logging.info(f"Logging to {log_file}")
 
-def log_to_file(message, log_file):
+def log_to_file(message, log_file, step=None):
     log_file = Path(log_file)
     log_file.parent.mkdir(exist_ok=True, parents=True)
     
     timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
     with open(log_file, "a") as f:
-        f.write(f"{timestamp} - {message}\n")
+        # Write step information if provided
+        if step is not None:
+            f.write(f"[Step {step}] {timestamp} - {message}\n")
+        else:
+            f.write(f"{timestamp} - {message}\n")
 
 # Wrapper for TensorBoard logging
 class TensorboardLogger:
@@ -121,3 +126,13 @@ class MetricsTracker:
                     result[name] = max(valid_values)
         
         return result
+    
+    def save_metrics(self, path):
+        path = Path(path)
+        with open(path, "w") as f:
+            json.dump(self.metrics, f)
+    
+    def reset(self):
+        self.train_losses.clear()
+        self.val_losses.clear()
+        self.metrics.clear()
