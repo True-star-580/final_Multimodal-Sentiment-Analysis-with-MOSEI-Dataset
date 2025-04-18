@@ -224,44 +224,59 @@ class Trainer:
         logger.info(f"Validation samples: {len(self.val_loader.dataset)}")
         if self.test_loader is not None:
             logger.info(f"Test samples: {len(self.test_loader.dataset)}")
-        
-        # Training loop
+
         best_val_metrics = None
-        
+        best_model = None
+        self.best_val_loss = float('inf')
+        self.best_epoch = 0
+        self.patience_counter = 0
+
+        train_losses = []
+        val_losses = []
+        train_metrics_list = []
+        val_metrics_list = []
+
         for epoch in range(1, num_epochs + 1):
             # Train for one epoch
             train_loss = self.train_epoch(epoch)
+            train_losses.append(train_loss)
             logger.info(f"Epoch {epoch} - Train loss: {train_loss:.4f}")
-            
+
             # Evaluate on validation set
             if epoch % eval_every == 0:
                 val_loss, val_metrics = self.validate(epoch)
+                val_losses.append(val_loss)
+                val_metrics_list.append(val_metrics)
                 logger.info(f"Epoch {epoch} - Validation loss: {val_loss:.4f}")
                 log_metrics(val_metrics, "val", epoch)
-                
+
+                # Save train metrics too (optional)
+                train_metrics = evaluate_mosei(self.model, self.train_loader, self.device)
+                train_metrics_list.append(train_metrics)
+                log_metrics(train_metrics, "train", epoch)
+
                 # Check if best model
                 if val_loss < self.best_val_loss:
                     self.best_val_loss = val_loss
                     self.best_epoch = epoch
+                    best_model = self.model
                     best_val_metrics = val_metrics
                     self.patience_counter = 0
-                    
-                    # Save best model
+
                     self.save_checkpoint(epoch, val_loss, is_best=True)
                     logger.info(f"New best model at epoch {epoch}")
                 else:
                     self.patience_counter += 1
                     logger.info(f"No improvement for {self.patience_counter} epochs")
-                    
-                    # Early stopping
+
                     if self.patience_counter >= patience:
                         logger.info(f"Early stopping at epoch {epoch}")
                         break
-            
+
             # Save regular checkpoint
             if epoch % 5 == 0 or epoch == num_epochs:
                 self.save_checkpoint(epoch, val_loss if epoch % eval_every == 0 else float("inf"))
-        
+
         logger.info(f"Training completed. Best model at epoch {self.best_epoch}")
-        
-        return self.model, best_val_metrics
+
+        return best_model, train_losses, val_losses, train_metrics_list, val_metrics_list

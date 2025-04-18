@@ -23,7 +23,7 @@ from config import (
 from src.data.dataset import get_dataloaders
 from src.models.fusion import TransformerFusionModel
 from src.training.trainer import Trainer
-from src.training.metrics import log_metrics
+from src.training.metrics import log_metrics, get_predictions
 from src.utils.logging import setup_logging, log_metrics
 from src.utils.visualization import plot_training_curves, plot_scatter_predictions
 
@@ -253,7 +253,7 @@ def main():
     log_metrics(test_metrics, "test")
     
     # Plot prediction scatter plot
-    predictions, targets = trainer.get_predictions(split="test", model=best_model)
+    predictions, targets = get_predictions(model=best_model, dataloader=dataloaders["test"], device=device)
     scatter_path = Path(args.log_dir) / "multimodal_predictions.png"
     plot_scatter_predictions(
         predictions, targets,
