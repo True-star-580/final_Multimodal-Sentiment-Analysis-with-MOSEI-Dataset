@@ -311,7 +311,6 @@ def train_model():
     }
     plot_training_curves(
         train_losses, val_losses,
-        metrics=metrics,
         save_path=plot_path
     )
     logger.info(f"Training curves plotted to {plot_path}")
