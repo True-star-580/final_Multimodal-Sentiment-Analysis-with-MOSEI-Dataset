@@ -109,20 +109,9 @@ cd Multimodal-Sentiment-Analysis-with-MOSEI-Dataset
 pip install -r requirements.txt
 ```
 
-### 3. Prepare the dataset
+### 3. Execute main.py
 ```bash
-python src/data/download.py
-python src/data/preprocess.py
-```
-
-### 4. Train the model
-```bash
-python scripts/train_multimodal.py
-```
-
-### 5. Run Evaluation
-```bash
-python scripts/evaluate.py
+python main.py
 ```
 
 ---
