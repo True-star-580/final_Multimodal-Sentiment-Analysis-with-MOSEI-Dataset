@@ -8,23 +8,24 @@ import torch.optim as optim
 from pathlib import Path
 from datetime import datetime
 
-# Add project root to path
+# Add project root to Python path for absolute imports
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
+# Import project-level configurations
 from config import (
     LOGS_DIR,
     TEXT_EMBEDDING_DIM, AUDIO_FEATURE_SIZE, VISUAL_FEATURE_SIZE,
     HIDDEN_DIM, LEARNING_RATE, WEIGHT_DECAY, BATCH_SIZE,
     NUM_EPOCHS, EARLY_STOPPING_PATIENCE, DEVICE, SEED
 )
-
+# Import necessary modules
 from src.data.dataset import get_unimodal_dataloaders
 from src.models.text import TextSentimentModel, TransformerTextEncoder
 from src.models.audio import AudioSentimentModel
 from src.models.visual import VisualSentimentModel
 from src.training.trainer import Trainer
-from src.training.metrics import calculate_metrics
-from src.utils.logging import setup_logger
+from src.training.metrics import evaluate_mosei, get_predictions
+from src.utils.logging import setup_logging
 from src.utils.visualization import (
     plot_training_curves,
     plot_scatter_predictions,
@@ -34,6 +35,12 @@ from src.utils.visualization import (
 )
 
 def parse_args():
+    """
+    Parses command-line arguments for unimodal training script.
+
+    Returns:
+        argparse.Namespace: Parsed arguments.
+    """
     parser = argparse.ArgumentParser(description="Train unimodal sentiment analysis model")
     
     parser.add_argument(
@@ -91,7 +98,7 @@ def parse_args():
         "--device",
         type=str,
         default=DEVICE,
-        help="Device to use for training (cuda/cpu)"
+        help="Device to use for training (mps/cuda/cpu)"
     )
     
     parser.add_argument(
@@ -104,6 +111,16 @@ def parse_args():
     return parser.parse_args()
 
 def get_model(args, input_dim):
+    """
+    Instantiate the model based on modality and model type.
+
+    Args:
+        args (argparse.Namespace): Parsed command-line arguments.
+        input_dim (int): Dimension of the input feature.
+
+    Returns:
+        nn.Module: Model instance.
+    """
     if args.modality == "language":
         if args.model_type == "simple":
             return TextSentimentModel(input_dim=input_dim, hidden_dim=HIDDEN_DIM)
@@ -120,15 +137,20 @@ def get_model(args, input_dim):
         raise ValueError(f"Invalid modality: {args.modality}")
 
 def main():
-    # Parse arguments
+    """
+    Main training and evaluation pipeline.
+    """
+    # Parse command-line arguments
     args = parse_args()
     
     # Set random seed for reproducibility
     torch.manual_seed(args.seed)
     if torch.cuda.is_available():
         torch.cuda.manual_seed(args.seed)
+    if torch.backends.mps.is_available():
+        torch.mps.manual_seed(args.seed)
     
-    # Set up experiment name
+    # Create experiment name if not provided
     if args.experiment_name is None:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         args.experiment_name = f"{args.modality}_{args.model_type}_{timestamp}"
@@ -141,7 +163,7 @@ def main():
     plot_dir = setup_plotting_directory(args.experiment_name)
     
     # Set up logger
-    logger = setup_logger(
+    logger = setup_logging(
         name=f"{args.modality}_{args.model_type}",
         log_file=exp_dir / "training.log"
     )
@@ -150,7 +172,7 @@ def main():
     logger.info(f"Starting training with arguments: {args}")
     
     # Set device
-    device = torch.device(args.device if torch.backends.mps.is_available() else args.device if torch.cuda.is_available() else "cpu")
+    device = torch.device(DEVICE)
     logger.info(f"Using device: {device}")
     
     # Load data
@@ -211,7 +233,7 @@ def main():
         num_epochs=args.epochs
     )
     
-    # Save model
+    # Save trained model
     model_path = model_dir / f"{args.modality}_{args.model_type}_model.pt"
     torch.save(model.state_dict(), model_path)
     logger.info(f"Model saved to {model_path}")
@@ -222,13 +244,13 @@ def main():
     test_loss, test_predictions, test_targets = trainer.evaluate(test_loader)
     
     # Calculate test metrics
-    test_metrics = calculate_metrics(test_targets, test_predictions)
+    test_metrics = evaluate_mosei(model, test_loader, device)
     logger.info(f"Test metrics: {test_metrics}")
     
     # Visualize results
     logger.info("Generating visualizations...")
     
-    # Plot training curves
+    # Plot training/validation curves
     plot_path = plot_dir / "training_curves.png"
     plot_training_curves(
         train_losses=train_losses,
@@ -237,7 +259,7 @@ def main():
         save_path=plot_path
     )
     
-    # Plot predictions vs ground truth
+    # Scatter plot of predictions vs ground truth
     plot_path = plot_dir / "predictions_scatter.png"
     plot_scatter_predictions(
         y_true=test_targets,
@@ -245,7 +267,7 @@ def main():
         save_path=plot_path
     )
     
-    # Plot confusion matrix (for binary sentiment)
+    # Confusion matrix (for binary prediction thresholding)
     plot_path = plot_dir / "confusion_matrix.png"
     plot_confusion_matrix(
         y_true=test_targets,
@@ -263,5 +285,6 @@ def main():
     
     logger.info(f"Training and evaluation completed for {args.modality} modality")
 
+# Entry point
 if __name__ == "__main__":
     main()

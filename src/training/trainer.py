@@ -9,7 +9,7 @@ import torch.optim as optim
 from pathlib import Path
 from tqdm import tqdm
 
-# Add project root to path
+# Add project root to system path for module resolution
 sys.path.append(str(Path(__file__).resolve().parents[2]))
 
 from src.training.metrics import evaluate_mosei, log_metrics
@@ -20,6 +20,23 @@ from config import DEVICE, MODELS_DIR, LOGS_DIR
 logger = logging.getLogger(__name__)
 
 class Trainer:
+    """
+    Trainer class for managing the training, validation, and testing process.
+
+    Attributes:
+        model (torch.nn.Module): The model to train.
+        train_loader (DataLoader): DataLoader for training data.
+        val_loader (DataLoader): DataLoader for validation data.
+        test_loader (DataLoader): DataLoader for testing data (optional).
+        optimizer (torch.optim.Optimizer): Optimizer used for training.
+        criterion (torch.nn.Module): Loss function.
+        device (torch.device): Device to train on (CPU/GPU).
+        model_dir (Path): Directory to save model checkpoints.
+        log_dir (Path): Directory to save logs.
+        experiment_name (str): Name of the experiment.
+        best_val_loss (float): Best validation loss encountered.
+        patience_counter (int): Counter for early stopping.
+    """
     def __init__(
         self,
         model,
@@ -73,6 +90,9 @@ class Trainer:
         self.patience_counter = 0
     
     def train_epoch(self, epoch):
+        """
+        Train the model for a single epoch.
+        """
         self.model.train()
         epoch_loss = 0.0
         
@@ -119,6 +139,9 @@ class Trainer:
         return avg_loss
     
     def validate(self, epoch):
+        """
+        Evaluate the model on the validation set.
+        """
         self.model.eval()
         val_loss = 0.0
         
@@ -167,6 +190,9 @@ class Trainer:
         return avg_loss, metrics
     
     def test(self):
+        """
+        Evaluate the best model on the test set.
+        """
         if self.test_loader is None:
             logger.warning("Test loader not provided. Skipping test evaluation.")
             return None
@@ -178,6 +204,14 @@ class Trainer:
         return metrics
     
     def save_checkpoint(self, epoch, val_loss, is_best=False):
+        """
+        Save model checkpoint.
+
+        Args:
+            epoch (int): Current epoch.
+            val_loss (float): Validation loss at this epoch.
+            is_best (bool): Flag to indicate if this is the best model so far.
+        """
         checkpoint = {
             "epoch": epoch,
             "model_state_dict": self.model.state_dict(),
@@ -197,6 +231,12 @@ class Trainer:
             logger.info(f"Saved best model to {best_path}")
     
     def load_checkpoint(self, checkpoint_path=None):
+        """
+        Load model checkpoint.
+
+        Args:
+            checkpoint_path (str): Path to the checkpoint file. If None, load best model.
+        """
         if checkpoint_path is None:
             checkpoint_path = self.model_dir / f"{self.experiment_name}_best.pt"
         
@@ -216,7 +256,22 @@ class Trainer:
             self.best_val_loss = checkpoint["val_loss"]
             logger.info(f"Best validation loss: {self.best_val_loss:.4f}")
     
-    def train(self, num_epochs=50, patience=5, eval_every=1):
+    def train(self, start_epoch=1, num_epochs=50, patience=5, eval_every=1):
+        """
+        Train the model with early stopping and checkpointing.
+
+        Args:
+            num_epochs (int): Number of total epochs.
+            patience (int): Patience for early stopping.
+            eval_every (int): Evaluate every N epochs.
+
+        Returns:
+            best_model (nn.Module): Best model based on validation performance.
+            train_losses (list): List of training losses per epoch.
+            val_losses (list): List of validation losses per evaluation.
+            train_metrics_list (list): List of training metrics per evaluation.
+            val_metrics_list (list): List of validation metrics per evaluation.
+        """
         logger.info(f"Starting training for {num_epochs} epochs")
         logger.info(f"Model: {self.model.__class__.__name__}")
         logger.info(f"Device: {self.device}")
@@ -236,7 +291,7 @@ class Trainer:
         train_metrics_list = []
         val_metrics_list = []
 
-        for epoch in range(1, num_epochs + 1):
+        for epoch in range(start_epoch, num_epochs + 1):
             # Train for one epoch
             train_loss = self.train_epoch(epoch)
             train_losses.append(train_loss)

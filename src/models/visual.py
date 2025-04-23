@@ -3,20 +3,43 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class VisualSentimentModel(nn.Module):
+    """
+    A feedforward neural network for visual sentiment regression.
+
+    Args:
+        input_dim (int): Input feature dimension (e.g., image feature vectors).
+        hidden_dim (int, optional): Number of neurons in the first hidden layer. Default is 128.
+        dropout_rate (float, optional): Dropout rate for regularization. Default is 0.3.
+
+    Forward Input:
+        x (Tensor): Input visual features of shape (batch_size, input_dim)
+
+    Forward Output:
+        Tensor: Predicted sentiment score of shape (batch_size, 1)
+    """
     def __init__(self, input_dim, hidden_dim=128, dropout_rate=0.3):
         super(VisualSentimentModel, self).__init__()
         
-        # Define the model architecture
+        # Fully connected layers
         self.fc1 = nn.Linear(input_dim, hidden_dim)
         self.fc2 = nn.Linear(hidden_dim, hidden_dim // 2)
         self.fc3 = nn.Linear(hidden_dim // 2, 1)
         
-        # Regularization
+        # Batch normalization and dropout layers
         self.dropout = nn.Dropout(dropout_rate)
         self.batch_norm1 = nn.BatchNorm1d(hidden_dim)
         self.batch_norm2 = nn.BatchNorm1d(hidden_dim // 2)
     
     def forward(self, x):
+        """
+        Forward pass of the visual sentiment model.
+
+        Args:
+            x (Tensor): Input tensor with shape (batch_size, input_dim)
+
+        Returns:
+            Tensor: Output sentiment prediction (batch_size, 1)
+        """    
         # First fully connected layer with batch normalization and ReLU
         x = self.fc1(x)
         x = self.batch_norm1(x)
@@ -35,17 +58,28 @@ class VisualSentimentModel(nn.Module):
         return x
 
 class TransformerVisualEncoder(nn.Module):
-    def __init__(
-        self, 
-        input_dim, 
-        hidden_dim=128, 
-        num_layers=2, 
-        num_heads=4, 
-        dropout_rate=0.3
-    ):
+    """
+    Transformer-based encoder for extracting visual features and predicting sentiment.
+
+    Args:
+        input_dim (int): Dimension of input visual features.
+        hidden_dim (int, optional): Dimension of the transformer hidden layer. Default is 128.
+        num_layers (int, optional): Number of transformer encoder layers. Default is 2.
+        num_heads (int, optional): Number of attention heads. Default is 4.
+        dropout_rate (float, optional): Dropout rate for regularization. Default is 0.3.
+
+    Forward Input:
+        x (Tensor): Visual input tensor of shape (batch_size, input_dim)
+
+    Forward Output:
+        Tuple[Tensor, Tensor]:
+            - Encoded visual representation of shape (batch_size, hidden_dim)
+            - Sentiment score prediction of shape (batch_size, 1)
+    """
+    def __init__(self, input_dim, hidden_dim=128, num_layers=2, num_heads=4, dropout_rate=0.3):
         super(TransformerVisualEncoder, self).__init__()
         
-        # Input projection
+        # Project input features to hidden dimension
         self.input_projection = nn.Linear(input_dim, hidden_dim)
         
         # Transformer encoder layers
@@ -57,6 +91,8 @@ class TransformerVisualEncoder(nn.Module):
             activation="relu",
             batch_first=True
         )
+
+        # Stack multiple encoder layers
         self.transformer_encoder = nn.TransformerEncoder(
             encoder_layer,
             num_layers=num_layers
@@ -65,10 +101,21 @@ class TransformerVisualEncoder(nn.Module):
         # Output projection
         self.output_projection = nn.Linear(hidden_dim, 1)
         
-        # Regularization
+        # Dropout for regularization
         self.dropout = nn.Dropout(dropout_rate)
     
     def forward(self, x):
+        """
+        Forward pass to get encoded visual representation and sentiment prediction.
+
+        Args:
+            x (Tensor): Input tensor of shape (batch_size, input_dim)
+
+        Returns:
+            Tuple[Tensor, Tensor]: 
+                - Encoded features (batch_size, hidden_dim)
+                - Sentiment score (batch_size, 1)
+        """
         # Get encoded features
         encoded = self.get_encoded_features(x)
         
@@ -77,8 +124,16 @@ class TransformerVisualEncoder(nn.Module):
         
         return encoded, sentiment
     
-    # Get encoded features without prediction (for multimodal fusion)
     def get_encoded_features(self, x):
+        """
+        Encodes visual input features using transformer encoder.
+
+        Args:
+            x (Tensor): Input tensor of shape (batch_size, input_dim)
+
+        Returns:
+            Tensor: Encoded representation of shape (batch_size, hidden_dim)
+        """
         # Project input to hidden dimension
         x = self.input_projection(x)
         

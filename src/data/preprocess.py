@@ -1,5 +1,4 @@
 import sys
-import argparse
 import logging
 import pickle
 import numpy as np
@@ -9,16 +8,17 @@ from tqdm import tqdm
 from sklearn.model_selection import train_test_split
 from transformers import BertTokenizer, BertModel
 
-# Add project root to path
+# Add project root to path for importing project-level modules
 sys.path.append(str(Path(__file__).resolve().parents[2]))
 
+# Import global configurations
 from config import (
     RAW_DATA_DIR, PROCESSED_DATA_DIR, DATASET_NAME,
     TEXT_MAX_LENGTH, AUDIO_FEATURE_SIZE, VISUAL_FEATURE_SIZE,
     TEXT_EMBEDDING_DIM, SEED, DEVICE
 )
 
-# Set up logging
+# Set up basic logging configuration
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -26,54 +26,64 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 class MOSEIPreprocessor:
+    """
+    A class to preprocess the CMU-MOSEI dataset by:
+    - Loading aligned multimodal data
+    - Extracting BERT embeddings for text
+    - Aggregating audio and visual features
+    - Splitting into train/val/test
+    - Saving processed data and metadata
+    """
     def __init__(self, raw_data_dir, processed_data_dir):
         self.raw_data_dir = Path(raw_data_dir) / DATASET_NAME
         self.processed_data_dir = Path(processed_data_dir) / DATASET_NAME
         self.processed_data_dir.mkdir(exist_ok=True, parents=True)
         
-        # Initialize BERT for text feature extraction
+        # Initialize BERT tokenizer and model
         self.tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
         self.bert_model = BertModel.from_pretrained("bert-base-uncased")
         self.bert_model.eval()
         
-        # Check if GPU is available
+        # Configure device for computation (GPU if available)
         self.device = DEVICE
         if self.device == "cuda" or self.device == "mps":
             logger.info(f"Using GPU: {self.device}")
         else:
             logger.info("Using CPU")
-        # Move BERT model to the appropriate device
         self.bert_model = self.bert_model.to(self.device)
         
-        # Data storage
+        # Initialize data containers for splits
         self.data = {
             "train": {"language": [], "acoustic": [], "visual": [], "labels": []},
             "val": {"language": [], "acoustic": [], "visual": [], "labels": []},
             "test": {"language": [], "acoustic": [], "visual": [], "labels": []}
         }
         
-        # Metadata storage
+        # Store metadata about dimensions and counts
         self.metadata = {
             "text_dim": TEXT_EMBEDDING_DIM,
             "audio_dim": AUDIO_FEATURE_SIZE,
             "visual_dim": VISUAL_FEATURE_SIZE,
-            "num_classes": 1,  # Regression task for sentiment
+            "num_classes": 1, # Regression (sentiment score)
             "train_samples": 0,
             "val_samples": 0,
             "test_samples": 0
         }
     
     def load_aligned_data(self):
+        """
+        Loads aligned CSD files for language, acoustic, visual, and label modalities.
+        """
         try:
             from mmsdk import mmdatasdk as md
             
-            # Check if aligned data exists
+            # Check if aligned data is present
             if not self.raw_data_dir.exists():
                 logger.error(f"Aligned data not found at {self.raw_data_dir}")
                 logger.error("Please run the download script first")
                 return False
             
-            # Load each modality separately
+            # Load the four required modalities
             dataset = {}
             dataset["language"] = "data/raw/CMU_MOSEI/CMU_MOSEI_TimestampedWords.csd"
             dataset["acoustic"] = "data/raw/CMU_MOSEI/CMU_MOSEI_COVAREP.csd"
@@ -84,7 +94,7 @@ class MOSEIPreprocessor:
                 logger.error("No computational sequence files found")
                 return None
             
-            # Create mmdataset
+            # Load dataset into memory
             mosei_dataset = md.mmdataset(dataset)
             
             return mosei_dataset
@@ -94,8 +104,11 @@ class MOSEIPreprocessor:
             return None
     
     def extract_text_features(self, text):
+        """
+        Converts raw text to BERT [CLS] embeddings.
+        """
         try:
-            # Tokenize and prepare input for BERT
+            # Tokenize and convert to tensor
             inputs = self.tokenizer(
                 text,
                 padding="max_length",
@@ -107,21 +120,24 @@ class MOSEIPreprocessor:
             # Move to appropriate device
             inputs = {key: val.to(self.device) for key, val in inputs.items()}
             
-            # Extract features with BERT
+            # Get BERT embeddings
             with torch.no_grad():
                 outputs = self.bert_model(**inputs)
                 # Use the [CLS] token representation as the text embedding
                 embeddings = outputs.last_hidden_state[:, 0, :].cpu().numpy()
             
-            return embeddings[0]  # Return as 1D array
+            return embeddings[0] # Return 1D vector
             
         except Exception as e:
             logger.error(f"Error extracting text features: {e}")
-            # Return zeros if there"s an error
+            # Return zeros if there's an error
             return np.zeros(TEXT_EMBEDDING_DIM)
     
     def extract_audio_features(self, audio_features):
-        # MOSEI already provides COVAREP features, we"ll use them directly
+        """
+        Aggregates COVAREP acoustic features by averaging over time.
+        """
+        # MOSEI already provides COVAREP features, we'll use them directly
         if len(audio_features.shape) > 1 and audio_features.shape[0] > 0:
             # For simplicity, we"ll use averaging over time
             selected_features = np.mean(audio_features, axis=0)
@@ -141,6 +157,9 @@ class MOSEIPreprocessor:
             return np.zeros(AUDIO_FEATURE_SIZE)
     
     def extract_visual_features(self, visual_features):
+        """
+        Aggregates visual features (FACET) by averaging over time.
+        """
         # MOSEI provides FACET features for visual modality
         if len(visual_features.shape) > 1 and visual_features.shape[0] > 0:
             # Average over time for simplicity
@@ -161,6 +180,9 @@ class MOSEIPreprocessor:
             return np.zeros(VISUAL_FEATURE_SIZE)
     
     def process_dataset(self):
+        """
+        Processes the full dataset: loading, splitting, feature extraction.
+        """
         # Load aligned data
         dataset = self.load_aligned_data()
         if dataset is None:
@@ -207,7 +229,6 @@ class MOSEIPreprocessor:
                     visual_embedding = self.extract_visual_features(visual_features)
                     
                     # Get the sentiment score (label)
-                    # MOSEI sentiment is in [-3, 3], we"ll use it directly
                     sentiment_score = np.mean(label)
                     
                     # Store the processed features
@@ -227,12 +248,15 @@ class MOSEIPreprocessor:
         return True
     
     def save_processed_data(self):
+        """
+        Saves preprocessed data and metadata to disk using pickle.
+        """
         for split_name in ["train", "val", "test"]:
             # Convert lists to numpy arrays
             for modality in ["language", "acoustic", "visual", "labels"]:
                 self.data[split_name][modality] = np.array(self.data[split_name][modality])
             
-            # Save to disk
+            # Save split data
             split_file = self.processed_data_dir / f"{split_name}_data.pkl"
             with open(split_file, "wb") as f:
                 pickle.dump(self.data[split_name], f)
@@ -246,34 +270,3 @@ class MOSEIPreprocessor:
             
         logger.info(f"Saved metadata to {metadata_file}")
         logger.info("Data preprocessing completed and saved successfully")
-
-def main():
-    parser = argparse.ArgumentParser(description="Preprocess CMU-MOSEI dataset")
-    parser.add_argument("--force", action="store_true", help="Force re-processing even if processed data exists")
-    args = parser.parse_args()
-    
-    # Create directories if they don"t exist
-    PROCESSED_DATA_DIR.mkdir(exist_ok=True, parents=True)
-    
-    # Check if processed data already exists
-    processed_dir = PROCESSED_DATA_DIR / DATASET_NAME
-    if processed_dir.exists() and not args.force:
-        if all((processed_dir / f"{split}_data.pkl").exists() for split in ["train", "val", "test"]):
-            logger.info(f"Processed data already exists at {processed_dir}. Use --force to re-process.")
-            return
-    
-    # Initialize the preprocessor
-    preprocessor = MOSEIPreprocessor(RAW_DATA_DIR, PROCESSED_DATA_DIR)
-    
-    # Process the dataset
-    success = preprocessor.process_dataset()
-    if success:
-        # Save the processed data
-        preprocessor.save_processed_data()
-        logger.info("Preprocessing completed successfully.")
-    else:
-        logger.error("Failed to preprocess dataset.")
-        sys.exit(1)
-
-if __name__ == "__main__":
-    main()

@@ -7,12 +7,21 @@ from pathlib import Path
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 from sklearn.manifold import TSNE
 
-# Add project root to path
+# Add project root to path for absolute imports
 sys.path.append(str(Path(__file__).resolve().parents[2]))
 
 from config import LOGS_DIR
 
 def plot_training_curves(train_losses, val_losses, metrics=None, save_path=None):
+    """
+    Plots training and validation loss curves, and optionally other metrics.
+
+    Args:
+        train_losses (list[float]): List of training loss values per epoch.
+        val_losses (list[float]): List of validation loss values per epoch.
+        metrics (dict[str, list[float]], optional): Dictionary of additional metrics.
+        save_path (str, optional): Path to save the plot as a file.
+    """
     # Create figure with appropriate size and subplots
     nrows = 1 + (1 if metrics else 0)
     fig, axes = plt.subplots(nrows=nrows, figsize=(10, 4 * nrows))
@@ -53,6 +62,15 @@ def plot_training_curves(train_losses, val_losses, metrics=None, save_path=None)
     plt.show()
 
 def plot_confusion_matrix(y_true, y_pred, labels=None, save_path=None):
+    """
+    Plots the confusion matrix for sentiment predictions.
+
+    Args:
+        y_true (list or np.ndarray): Ground truth sentiment values.
+        y_pred (list or np.ndarray): Predicted sentiment values.
+        labels (list[str], optional): Class labels.
+        save_path (str, optional): Path to save the plot as a file.
+    """
     # Convert continuous sentiment to binary or categorical if needed
     if labels is None:
         # Binary sentiment (positive/negative)
@@ -81,6 +99,14 @@ def plot_confusion_matrix(y_true, y_pred, labels=None, save_path=None):
     plt.show()
 
 def plot_scatter_predictions(y_true, y_pred, save_path=None):
+    """
+    Plots a scatter plot comparing true vs. predicted sentiment values.
+
+    Args:
+        y_true (list or np.ndarray): Ground truth sentiment values.
+        y_pred (list or np.ndarray): Predicted sentiment values.
+        save_path (str, optional): Path to save the plot as a file.
+    """
     plt.figure(figsize=(8, 8))
     
     # Plot scatter
@@ -114,6 +140,15 @@ def plot_scatter_predictions(y_true, y_pred, save_path=None):
     plt.show()
 
 def plot_features_tsne(features, labels, modality=None, save_path=None):
+    """
+    Visualizes features using t-SNE with color based on sentiment labels.
+
+    Args:
+        features (np.ndarray): Feature matrix.
+        labels (list or np.ndarray): Sentiment values.
+        modality (str, optional): Name of the modality (for title).
+        save_path (str, optional): Path to save the plot as a file.
+    """
     # Convert labels to categories for coloring
     # Bin sentiment scores into 7 categories from -3 to +3
     sentiment_bins = np.linspace(-3, 3, 7)
@@ -156,6 +191,13 @@ def plot_features_tsne(features, labels, modality=None, save_path=None):
     plt.show()
 
 def plot_modality_contributions(contributions, save_path=None):
+    """
+    Plots modality contribution scores as a horizontal bar chart.
+
+    Args:
+        contributions (dict[str, float]): Dictionary mapping modality to score.
+        save_path (str, optional): Path to save the plot as a file.
+    """
     modalities = list(contributions.keys())
     scores = list(contributions.values())
     
@@ -180,6 +222,14 @@ def plot_modality_contributions(contributions, save_path=None):
     plt.show()
 
 def visualize_attention_weights(attention_weights, modalities=None, save_path=None):
+    """
+    Visualizes cross-modal attention weights as a heatmap.
+
+    Args:
+        attention_weights (np.ndarray): Square matrix of attention weights.
+        modalities (list[str], optional): List of modality names.
+        save_path (str, optional): Path to save the plot as a file.
+    """
     if modalities is None:
         modalities = ["Text", "Audio", "Visual"]
     
@@ -206,6 +256,14 @@ def visualize_attention_weights(attention_weights, modalities=None, save_path=No
     plt.show()
 
 def visualize_results_summary(metrics_dict, model_name, save_path=None):
+    """
+    Plots summary bar chart of evaluation metrics for a model.
+
+    Args:
+        metrics_dict (dict[str, float]): Metric names and values.
+        model_name (str): Name of the model (for title).
+        save_path (str, optional): Path to save the plot as a file.
+    """
     metrics = list(metrics_dict.keys())
     values = list(metrics_dict.values())
     
@@ -234,6 +292,15 @@ def visualize_results_summary(metrics_dict, model_name, save_path=None):
     plt.show()
 
 def setup_plotting_directory(experiment_name):
+    """
+    Creates a directory structure for storing plots for a given experiment.
+
+    Args:
+        experiment_name (str): Name of the experiment.
+
+    Returns:
+        Path: Path to the plots directory.
+    """
     plot_dir = LOGS_DIR / experiment_name / "plots"
     plot_dir.mkdir(exist_ok=True, parents=True)
     return plot_dir

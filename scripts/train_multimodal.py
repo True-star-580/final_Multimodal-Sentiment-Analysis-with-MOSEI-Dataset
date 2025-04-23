@@ -10,9 +10,10 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 
-# Add project root to path
+# Add project root to Python path to allow relative imports
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
+# Import project-level configurations
 from config import (
     LOGS_DIR, MODELS_DIR,
     BATCH_SIZE, LEARNING_RATE, WEIGHT_DECAY, NUM_EPOCHS, 
@@ -20,14 +21,22 @@ from config import (
     TEXT_EMBEDDING_DIM, AUDIO_FEATURE_SIZE, VISUAL_FEATURE_SIZE,
     HIDDEN_DIM, NUM_ATTENTION_HEADS, NUM_TRANSFORMER_LAYERS, DROPOUT_RATE
 )
+
+# Import necessary modules
 from src.data.dataset import get_dataloaders
 from src.models.fusion import TransformerFusionModel
 from src.training.trainer import Trainer
 from src.training.metrics import log_metrics, get_predictions
-from src.utils.logging import setup_logging, log_metrics
+from src.utils.logging import setup_logging
 from src.utils.visualization import plot_training_curves, plot_scatter_predictions
 
 def parse_args():
+    """
+    Parses command-line arguments for multimodal training script.
+
+    Returns:
+        argparse.Namespace: Parsed arguments.
+    """
     parser = argparse.ArgumentParser(description="Train multimodal fusion model for MOSEI sentiment analysis")
     
     parser.add_argument(
@@ -138,7 +147,10 @@ def parse_args():
     return parser.parse_args()
 
 def main():
-    # Parse arguments
+    """
+    Main execution function for training and evaluating the model.
+    """
+    # Parse training arguments
     args = parse_args()
     
     # Setup logging
@@ -159,21 +171,22 @@ def main():
     device = DEVICE
     logger.info(f"Using device: {device}")
     
-    # Load data
+    # Load dataset dataloaders
     logger.info("Loading data...")
     dataloaders = get_dataloaders(
         modalities=modalities, 
         batch_size=args.batch_size
     )
     
-    # Create model
-    logger.info("Creating model...")
+    # Define input dimension mapping for each modality
     input_dims = {
         "language": TEXT_EMBEDDING_DIM,
         "acoustic": AUDIO_FEATURE_SIZE,
         "visual": VISUAL_FEATURE_SIZE
     }
     
+    # Initialize multimodal transformer model
+    logger.info("Creating model...")
     model = TransformerFusionModel(
         text_dim=input_dims["language"],
         audio_dim=input_dims["acoustic"],
@@ -195,7 +208,7 @@ def main():
         weight_decay=args.weight_decay
     )
     
-    # Load checkpoint if provided
+    # Load checkpoint for resuming training (if provided)
     start_epoch = 0
     if args.checkpoint:
         checkpoint_path = Path(args.checkpoint)
@@ -209,7 +222,7 @@ def main():
         else:
             logger.warning(f"Checkpoint not found: {checkpoint_path}")
     
-    # Create save directory
+    # Create directory for saving models
     save_dir = Path(args.save_dir)
     save_dir.mkdir(exist_ok=True)
     
@@ -247,12 +260,12 @@ def main():
     )
     logger.info(f"Training curves plotted to {plot_path}")
     
-    # Evaluate on test set
+    # Evaluate best model on test set
     logger.info("Evaluating on test set...")
     test_metrics = trainer.test()
     log_metrics(test_metrics, "test")
     
-    # Plot prediction scatter plot
+    # Scatter plot of predictions vs actual targets
     predictions, targets = get_predictions(model=best_model, dataloader=dataloaders["test"], device=device)
     scatter_path = Path(args.log_dir) / "multimodal_predictions.png"
     plot_scatter_predictions(
@@ -264,5 +277,6 @@ def main():
     
     logger.info("Training and evaluation completed!")
 
+# Entry point
 if __name__ == "__main__":
     main()

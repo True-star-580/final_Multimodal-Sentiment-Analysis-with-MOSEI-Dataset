@@ -3,20 +3,47 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class AudioSentimentModel(nn.Module):
+    """
+    A simple feedforward neural network for audio-based sentiment prediction.
+
+    Args:
+        input_dim (int): Dimension of input audio features.
+        hidden_dim (int, optional): Number of neurons in the first hidden layer. Default is 128.
+        dropout_rate (float, optional): Dropout rate for regularization. Default is 0.3.
+
+    Forward Input:
+        x (Tensor): Audio feature tensor of shape (batch_size, input_dim)
+
+    Forward Output:
+        Tensor: Predicted sentiment score of shape (batch_size, 1)
+    """
     def __init__(self, input_dim, hidden_dim=128, dropout_rate=0.3):
         super(AudioSentimentModel, self).__init__()
         
-        # Define the model architecture
+        # First fully connected layer
         self.fc1 = nn.Linear(input_dim, hidden_dim)
-        self.fc2 = nn.Linear(hidden_dim, hidden_dim // 2)
-        self.fc3 = nn.Linear(hidden_dim // 2, 1)
-        
-        # Regularization
-        self.dropout = nn.Dropout(dropout_rate)
         self.batch_norm1 = nn.BatchNorm1d(hidden_dim)
+
+        # Second fully connected layer
+        self.fc2 = nn.Linear(hidden_dim, hidden_dim // 2)
         self.batch_norm2 = nn.BatchNorm1d(hidden_dim // 2)
+
+        # Output layer for regression (sentiment score)
+        self.fc3 = nn.Linear(hidden_dim // 2, 1)
+
+        # Dropout for regularization
+        self.dropout = nn.Dropout(dropout_rate)
     
     def forward(self, x):
+        """
+        Forward pass of the feedforward sentiment model.
+
+        Args:
+            x (Tensor): Audio features (batch_size, input_dim)
+
+        Returns:
+            Tensor: Predicted sentiment score (batch_size, 1)
+        """
         # First fully connected layer with batch normalization and ReLU
         x = self.fc1(x)
         x = self.batch_norm1(x)
@@ -35,14 +62,25 @@ class AudioSentimentModel(nn.Module):
         return x
 
 class TransformerAudioEncoder(nn.Module):
-    def __init__(
-        self, 
-        input_dim, 
-        hidden_dim=128, 
-        num_layers=2, 
-        num_heads=4, 
-        dropout_rate=0.3
-    ):
+    """
+    Transformer-based encoder for audio features with sentiment prediction.
+
+    Args:
+        input_dim (int): Dimension of input audio features.
+        hidden_dim (int, optional): Hidden size for transformer encoder. Default is 128.
+        num_layers (int, optional): Number of transformer encoder layers. Default is 2.
+        num_heads (int, optional): Number of attention heads in each transformer layer. Default is 4.
+        dropout_rate (float, optional): Dropout rate for regularization. Default is 0.3.
+
+    Forward Input:
+        x (Tensor): Audio feature tensor of shape (batch_size, input_dim)
+
+    Forward Output:
+        Tuple[Tensor, Tensor]: 
+            - Encoded audio representation (batch_size, hidden_dim)
+            - Sentiment score (batch_size, 1)
+    """
+    def __init__(self, input_dim, hidden_dim=128, num_layers=2, num_heads=4, dropout_rate=0.3):
         super(TransformerAudioEncoder, self).__init__()
         
         # Input projection
@@ -57,6 +95,8 @@ class TransformerAudioEncoder(nn.Module):
             activation="relu",
             batch_first=True
         )
+
+        # Stack multiple transformer encoder layers
         self.transformer_encoder = nn.TransformerEncoder(
             encoder_layer,
             num_layers=num_layers
@@ -65,11 +105,19 @@ class TransformerAudioEncoder(nn.Module):
         # Output projection
         self.output_projection = nn.Linear(hidden_dim, 1)
         
-        # Regularization
+        # Dropout for regularization
         self.dropout = nn.Dropout(dropout_rate)
     
-    # Get encoded features without prediction (for multimodal fusion)
     def get_encoded_features(self, x):
+        """
+        Extract high-level representation of audio input using transformer encoder.
+
+        Args:
+            x (Tensor): Audio input tensor of shape (batch_size, input_dim)
+
+        Returns:
+            Tensor: Encoded representation of shape (batch_size, hidden_dim)
+        """
         # Project input to hidden dimension
         x = self.input_projection(x)
         
@@ -80,12 +128,23 @@ class TransformerAudioEncoder(nn.Module):
         # Apply transformer encoder
         x = self.transformer_encoder(x)
         
-        # Extract the encoded representation (use the first token)
+        # Use first token's representation as the summary
         encoded = x[:, 0, :]
         
         return encoded
     
     def forward(self, x):
+        """
+        Forward pass through transformer encoder and sentiment head.
+
+        Args:
+            x (Tensor): Audio feature tensor of shape (batch_size, input_dim)
+
+        Returns:
+            Tuple[Tensor, Tensor]: 
+                - Encoded audio representation (batch_size, hidden_dim)
+                - Sentiment prediction (batch_size, 1)
+        """
         # Get encoded features
         encoded = self.get_encoded_features(x)
         

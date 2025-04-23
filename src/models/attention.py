@@ -3,8 +3,18 @@ import torch.nn as nn
 import torch.nn.functional as F
 import math
 
-# Cross-attention mechanism for fusing features from different modalities.
 class CrossAttention(nn.Module):
+    """
+    Cross-Attention mechanism for computing attention between different modalities.
+    
+    Args:
+        query_dim (int): Dimension of the query input.
+        key_dim (int): Dimension of the key input.
+        value_dim (int): Dimension of the value input.
+        hidden_dim (int): Internal hidden dimension used for multi-head attention.
+        num_heads (int): Number of attention heads.
+        dropout_rate (float): Dropout rate for regularization.
+    """
     def __init__(self, query_dim, key_dim, value_dim, hidden_dim, num_heads=8, dropout_rate=0.1):
         super(CrossAttention, self).__init__()
         
@@ -13,7 +23,7 @@ class CrossAttention(nn.Module):
         self.head_dim = hidden_dim // num_heads
         assert self.head_dim * num_heads == hidden_dim, "hidden_dim must be divisible by num_heads"
         
-        # Linear projections for query, key, value
+        # Linear layers to project query, key, and value to hidden dimensions
         self.query_proj = nn.Linear(query_dim, hidden_dim)
         self.key_proj = nn.Linear(key_dim, hidden_dim)
         self.value_proj = nn.Linear(value_dim, hidden_dim)
@@ -21,10 +31,21 @@ class CrossAttention(nn.Module):
         # Output projection
         self.output_proj = nn.Linear(hidden_dim, hidden_dim)
         
-        # Regularization
+        # Dropout for regularization
         self.dropout = nn.Dropout(dropout_rate)
     
     def forward(self, query, key, value):
+        """
+        Forward pass for cross-attention.
+        
+        Args:
+            query (Tensor): Query tensor of shape (batch_size, seq_len_q, query_dim).
+            key (Tensor): Key tensor of shape (batch_size, seq_len_k, key_dim).
+            value (Tensor): Value tensor of shape (batch_size, seq_len_v, value_dim).
+            
+        Returns:
+            Tensor: Attention output of shape (batch_size, seq_len_q, hidden_dim) or (batch_size, hidden_dim) if seq_len_q = 1.
+        """
         batch_size = query.size(0)
         
         # Project query, key, value
@@ -53,8 +74,18 @@ class CrossAttention(nn.Module):
         
         return output
 
-# Multimodal cross-attention for fusing features from text, audio, and visual modalities.
 class MultimodalCrossAttention(nn.Module):
+    """
+    Multimodal fusion using cross-attention between text, audio, and visual features.
+    
+    Args:
+        text_dim (int): Dimension of text input features.
+        audio_dim (int): Dimension of audio input features.
+        visual_dim (int): Dimension of visual input features.
+        hidden_dim (int): Hidden dimension to which all modalities are projected.
+        num_heads (int): Number of attention heads.
+        dropout_rate (float): Dropout rate for regularization.
+    """
     def __init__(
         self, 
         text_dim, 
@@ -66,7 +97,7 @@ class MultimodalCrossAttention(nn.Module):
     ):
         super(MultimodalCrossAttention, self).__init__()
         
-        # Projections to make all modalities the same dimension
+        # Project input modalities to common hidden dimension
         self.text_proj = nn.Linear(text_dim, hidden_dim)
         self.audio_proj = nn.Linear(audio_dim, hidden_dim)
         self.visual_proj = nn.Linear(visual_dim, hidden_dim)
@@ -98,7 +129,7 @@ class MultimodalCrossAttention(nn.Module):
         
         # Final fusion layer
         self.fusion_layer = nn.Sequential(
-            nn.Linear(hidden_dim * 3, hidden_dim * 2),
+            nn.Linear(hidden_dim * 2, hidden_dim * 2),
             nn.LayerNorm(hidden_dim * 2),
             nn.ReLU(),
             nn.Dropout(dropout_rate),
@@ -112,14 +143,26 @@ class MultimodalCrossAttention(nn.Module):
         self.output_proj = nn.Linear(hidden_dim, 1)
     
     def forward(self, text_features, audio_features, visual_features):
+        """
+        Forward pass for multimodal cross-attention fusion.
+        
+        Args:
+            text_features (Tensor): Text features of shape (batch_size, text_dim).
+            audio_features (Tensor): Audio features of shape (batch_size, audio_dim).
+            visual_features (Tensor): Visual features of shape (batch_size, visual_dim).
+        
+        Returns:
+            fused_features (Tensor): Multimodal fused features (batch_size, hidden_dim).
+            sentiment (Tensor): Sentiment prediction score (batch_size, 1).
+        """
         batch_size = text_features.size(0)
         
-        # Project features to the same dimension
+        # Project features to the hidden dimension
         text_proj = self.text_proj(text_features)
         audio_proj = self.audio_proj(audio_features)
         visual_proj = self.visual_proj(visual_features)
         
-        # Add sequence dimension if needed
+        # Add sequence dimension for attention if needed (e.g., [B, D] -> [B, 1, D])
         if len(text_proj.shape) == 2:
             text_proj = text_proj.unsqueeze(1)
             audio_proj = audio_proj.unsqueeze(1)
@@ -140,12 +183,13 @@ class MultimodalCrossAttention(nn.Module):
         visual_audio_attn = self.visual_audio_attn(visual_proj, audio_proj, audio_proj)
         visual_context = visual_proj + visual_text_attn + visual_audio_attn
         
-        # Extract features (assume single token per modality)
-        text_features = text_context.squeeze(1)
-        audio_features = audio_context.squeeze(1)
-        visual_features = visual_context.squeeze(1)
+        # Remove sequence dimension ([B, 1, D] -> [B, D])
+        if len(text_proj.shape) == 3:
+            text_proj = text_proj.squeeze(1)
+            audio_proj = audio_proj.squeeze(1)
+            visual_proj = visual_proj.squeeze(1)
         
-        # Concatenate attended features
+        # Concatenate fused features from all modalities
         concat_features = torch.cat([text_features, audio_features, visual_features], dim=1)
         
         # Apply fusion layer
