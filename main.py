@@ -182,7 +182,11 @@ def train_model():
 
     # Setup logging
     logger = setup_logging(log_dir)
-    
+
+    if not device:
+        device = DEVICE
+    else:
+        device = device.lower()
     if device not in ["mps", "cuda", "cpu", "auto"]:
         logger.error("Invalid device. Please enter 'mps', 'cuda', or 'cpu'.")
         return
@@ -301,9 +305,13 @@ def train_model():
 
     # Plot training curves
     plot_path = Path(log_dir) / "multimodal_training_curves.png"
+    metrics = {
+        "train_metrics": train_metrics,
+        "val_metrics": val_metrics
+    }
     plot_training_curves(
         train_losses, val_losses,
-        train_metrics, val_metrics,
+        metrics=metrics,
         save_path=plot_path
     )
     logger.info(f"Training curves plotted to {plot_path}")
@@ -355,7 +363,11 @@ def evaluate_model():
     batch_size = input("Enter batch size (default: 32): ").strip() or BATCH_SIZE
     
     # Validate and set device
-    device = input("Enter device (cuda/mps/cpu/auto): ").strip()
+    device = input("Enter device (cuda/mps/cpu/default: auto): ").strip()
+    if not device:
+        device = DEVICE
+    else:
+        device = device.lower()
     if device not in ["mps", "cuda", "cpu", "auto"]:
         logger.error("Invalid device. Please enter 'mps', 'cuda', or 'cpu'.")
         return
@@ -444,13 +456,13 @@ def visualize_results():
 
     if plot_path.exists():
         logger.info(f"Opening training curves: {plot_path}")
-        os.system(f"open {plot_path}" if sys.platform == "darwin" else f"xdg-open {plot_path}")
+        os.system(f"open '{plot_path}'" if sys.platform == "darwin" else f"xdg-open '{plot_path}'")
     else:
         logger.error("Training curves plot not found.")
 
     if scatter_path.exists():
         logger.info(f"Opening prediction scatter plot: {scatter_path}")
-        os.system(f"open {scatter_path}" if sys.platform == "darwin" else f"xdg-open {scatter_path}")
+        os.system(f"open '{scatter_path}'" if sys.platform == "darwin" else f"xdg-open '{scatter_path}'")
     else:
         logger.error("Prediction scatter plot not found.")
 

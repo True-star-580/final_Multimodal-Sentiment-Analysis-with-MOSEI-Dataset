@@ -98,7 +98,7 @@ def plot_confusion_matrix(y_true, y_pred, labels=None, save_path=None):
     
     plt.show()
 
-def plot_scatter_predictions(y_true, y_pred, save_path=None):
+def plot_scatter_predictions(y_pred, y_true, save_path=None, title=None):
     """
     Plots a scatter plot comparing true vs. predicted sentiment values.
 
@@ -120,7 +120,10 @@ def plot_scatter_predictions(y_true, y_pred, save_path=None):
     # Add details
     plt.xlabel("True Sentiment")
     plt.ylabel("Predicted Sentiment")
-    plt.title("True vs Predicted Sentiment Values")
+    if title:
+        plt.title(title)
+    else:
+        plt.title("True vs Predicted Sentiment Values")
     plt.grid(True)
     
     # Add correlation coefficient
