@@ -428,8 +428,8 @@ def evaluate_model():
     predictions, targets = get_predictions(model=model, dataloader=test_loader, device=device)
 
     # Compute and log metrics
-    from src.training.metrics import compute_metrics
-    test_metrics = compute_metrics(predictions, targets)
+    from src.training.metrics import evaluate_mosei
+    test_metrics = evaluate_mosei(model, test_loader, device)
     log_metrics(test_metrics, split="test")
 
     # Plot scatter predictions
