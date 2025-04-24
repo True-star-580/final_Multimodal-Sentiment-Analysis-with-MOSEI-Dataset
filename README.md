@@ -116,7 +116,14 @@ python main.py
 
 ---
 
-## 👥 Team Members
+## Presentation (PPT/Video)
+
+- [PPT w/ Demo]([https://github.com/JugalGajjar](https://docs.google.com/presentation/d/121FH_3IEypobBlzidtO67GA0RLd9jOJl/edit?usp=drive_link&ouid=106335687097758228725&rtpof=true&sd=true))
+- [YouTube Video](https://youtu.be/stYaQOx14zE?si=m35rxNYSfkhHuerq)
+
+---
+
+## Team Members
 
 - Jugal Gajjar [GitHub](https://github.com/JugalGajjar), [LinkedIn](https://www.linkedin.com/in/jugal-gajjar/)
 - Kaustik Ranaware [GitHub](https://github.com/KAUSTIKR), [LinkedIn](https://www.linkedin.com/in/kaustik/)
