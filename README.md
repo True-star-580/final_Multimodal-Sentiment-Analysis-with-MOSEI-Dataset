@@ -118,7 +118,7 @@ python main.py
 
 ## Presentation (PPT/Video)
 
-- [PPT w/ Demo]([https://github.com/JugalGajjar](https://docs.google.com/presentation/d/121FH_3IEypobBlzidtO67GA0RLd9jOJl/edit?usp=drive_link&ouid=106335687097758228725&rtpof=true&sd=true))
+- [PPT w/ Demo](https://github.com/JugalGajjar](https://docs.google.com/presentation/d/121FH_3IEypobBlzidtO67GA0RLd9jOJl/edit?usp=drive_link&ouid=106335687097758228725&rtpof=true&sd=true))
 - [YouTube Video](https://youtu.be/stYaQOx14zE?si=m35rxNYSfkhHuerq)
 
 ---
