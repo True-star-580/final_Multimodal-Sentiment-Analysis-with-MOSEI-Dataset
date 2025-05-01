@@ -72,7 +72,7 @@ WEIGHT_DECAY = 1e-5
 NUM_EPOCHS = 50
 
 # Patience for early stopping
-EARLY_STOPPING_PATIENCE = 5
+EARLY_STOPPING_PATIENCE = 10
 
 # Gradient clipping threshold to avoid exploding gradients
 GRADIENT_CLIP_VAL = 1.0

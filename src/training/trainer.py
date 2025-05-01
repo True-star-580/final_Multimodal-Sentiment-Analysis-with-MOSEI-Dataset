@@ -256,7 +256,7 @@ class Trainer:
             self.best_val_loss = checkpoint["val_loss"]
             logger.info(f"Best validation loss: {self.best_val_loss:.4f}")
     
-    def train(self, start_epoch=1, num_epochs=50, patience=5, eval_every=1):
+    def train(self, start_epoch=1, num_epochs=50, patience=10, eval_every=1):
         """
         Train the model with early stopping and checkpointing.
 

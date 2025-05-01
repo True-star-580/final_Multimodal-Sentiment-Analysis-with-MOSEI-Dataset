@@ -173,7 +173,7 @@ def train_model():
     dropout = float(input("Enter dropout rate (default: 0.3): ").strip() or DROPOUT_RATE)
     lr = float(input("Enter learning rate (default: 1e-4): ").strip() or LEARNING_RATE)
     weight_decay = float(input("Enter weight decay (default: 1e-5): ").strip() or WEIGHT_DECAY)
-    early_stopping = int(input("Enter early stopping patience (default: 5): ").strip() or EARLY_STOPPING_PATIENCE)
+    early_stopping = int(input("Enter early stopping patience (default: 10): ").strip() or EARLY_STOPPING_PATIENCE)
     gradient_clip = float(input("Enter gradient clipping value (default: 1.0): ").strip() or GRADIENT_CLIP_VAL)
     seed = int(input("Enter random seed (default: 42): ").strip() or SEED)
     log_dir = input("Enter log directory (default: logs/): ").strip() or LOGS_DIR
