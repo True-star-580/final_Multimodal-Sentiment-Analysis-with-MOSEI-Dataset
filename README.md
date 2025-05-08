@@ -118,7 +118,7 @@ python main.py
 
 ## Presentation (PPT/Video)
 
-- [PPT w/ Demo](https://github.com/JugalGajjar/Multimodal-Sentiment-Analysis-with-MOSEI-Dataset/blob/main/project_paper.pdf)
+- [Project Paper](https://github.com/JugalGajjar/Multimodal-Sentiment-Analysis-with-MOSEI-Dataset/blob/main/project_paper.pdf)
 - [YouTube Video (Short)](https://youtu.be/stYaQOx14zE?si=m35rxNYSfkhHuerq)
 - [YouTube Video (Detailed)](https://youtu.be/hF3ERyC_iYc?si=nhdp_orkF0e5rEhX)
 
