@@ -62,7 +62,7 @@ To download and process the dataset:
 
 ```bash
 # Clone and set up the SDK
-git clone https://github.com/A2Zadeh/CMU-MultimodalSDK.git
+git clone https://github.com/CMU-MultiComp-Lab/CMU-MultimodalSDK.git
 cd CMU-MultimodalSDK
 pip install -e .
 
