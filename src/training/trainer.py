@@ -1,3 +1,4 @@
+#src/training/trainer.py
 import os
 import sys
 import time
@@ -31,6 +32,7 @@ class Trainer:
         optimizer (torch.optim.Optimizer): Optimizer used for training.
         criterion (torch.nn.Module): Loss function.
         device (torch.device): Device to train on (CPU/GPU).
+        grad_clip_value (float): Value for gradient clipping to prevent explosion.
         model_dir (Path): Directory to save model checkpoints.
         log_dir (Path): Directory to save logs.
         experiment_name (str): Name of the experiment.
@@ -45,6 +47,7 @@ class Trainer:
         test_loader=None,
         lr=1e-4,
         weight_decay=1e-5,
+        grad_clip_value=1.0,  # AMENDED: Added parameter for gradient clipping
         device=None,
         model_dir=None,
         log_dir=None,
@@ -66,6 +69,9 @@ class Trainer:
             weight_decay=weight_decay
         )
         self.criterion = nn.MSELoss()
+        
+        # AMENDED: Store the gradient clipping value
+        self.grad_clip_value = grad_clip_value
         
         # Setup paths for saving models and logs
         self.model_dir = Path(model_dir) if model_dir is not None else Path(MODELS_DIR)
@@ -119,9 +125,23 @@ class Trainer:
             
             # Calculate loss
             loss = self.criterion(outputs.squeeze(), labels)
+
+            # AMENDED: Add a check for NaN loss to fail early and provide a clear error.
+            if torch.isnan(loss):
+                raise ValueError(
+                    f"Loss became NaN at epoch {epoch}, batch {batch_idx}. "
+                    "This is often caused by an exploding gradient. "
+                    "Try lowering the learning rate or ensuring gradient clipping is active."
+                )
             
-            # Backward pass and optimize
+            # Backward pass
             loss.backward()
+            
+            # AMENDED: Add gradient clipping to prevent exploding gradients. This is the primary fix.
+            if self.grad_clip_value is not None:
+                torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=self.grad_clip_value)
+
+            # Optimize
             self.optimizer.step()
             
             # Update statistics
@@ -145,9 +165,6 @@ class Trainer:
         self.model.eval()
         val_loss = 0.0
         
-        all_preds = []
-        all_labels = []
-        
         with torch.no_grad():
             for batch in self.val_loader:
                 # Get batch data
@@ -169,22 +186,12 @@ class Trainer:
                 
                 # Update statistics
                 val_loss += loss.item()
-                
-                # Collect predictions and labels
-                preds = outputs.squeeze().cpu().numpy()
-                labels = labels.cpu().numpy()
-                
-                all_preds.append(preds)
-                all_labels.append(labels)
         
         # Calculate average loss
         avg_loss = val_loss / len(self.val_loader)
         
-        # Concatenate batch results
-        all_preds = np.concatenate(all_preds)
-        all_labels = np.concatenate(all_labels)
-        
         # Evaluate using metrics
+        # Note: This is now safe due to the NaN check in evaluate_mosei
         metrics = evaluate_mosei(self.model, self.val_loader, self.device)
         
         return avg_loss, metrics
@@ -198,6 +205,8 @@ class Trainer:
             return None
         
         logger.info("Evaluating model on test set...")
+        # Load the best performing model before testing
+        self.load_checkpoint()
         metrics = evaluate_mosei(self.model, self.test_loader, self.device)
         log_metrics(metrics, "test")
         
@@ -222,7 +231,6 @@ class Trainer:
         # Save regular checkpoint
         checkpoint_path = self.model_dir / f"{self.experiment_name}_epoch_{epoch}.pt"
         torch.save(checkpoint, checkpoint_path)
-        logger.info(f"Saved checkpoint to {checkpoint_path}")
         
         # Save best model
         if is_best:
@@ -249,12 +257,13 @@ class Trainer:
         
         # Load model and optimizer states
         self.model.load_state_dict(checkpoint["model_state_dict"])
-        self.optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+        if "optimizer_state_dict" in checkpoint:
+            self.optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
         
         # Set best validation loss
         if "val_loss" in checkpoint:
             self.best_val_loss = checkpoint["val_loss"]
-            logger.info(f"Best validation loss: {self.best_val_loss:.4f}")
+            logger.info(f"Loaded checkpoint with best validation loss: {self.best_val_loss:.4f}")
     
     def train(self, start_epoch=1, num_epochs=50, patience=10, eval_every=1):
         """
@@ -280,8 +289,7 @@ class Trainer:
         if self.test_loader is not None:
             logger.info(f"Test samples: {len(self.test_loader.dataset)}")
 
-        best_val_metrics = None
-        best_model = None
+        best_model_state_dict = None
         self.best_val_loss = float('inf')
         self.best_epoch = 0
         self.patience_counter = 0
@@ -298,31 +306,31 @@ class Trainer:
             logger.info(f"Epoch {epoch} - Train loss: {train_loss:.4f}")
 
             # Evaluate on validation set
+            val_loss = float('inf')
             if epoch % eval_every == 0:
                 val_loss, val_metrics = self.validate(epoch)
+                
+                # Check for NaN validation loss from the metrics safeguard
+                if np.isnan(val_loss):
+                    logger.error(f"Validation loss is NaN at epoch {epoch}. Stopping training.")
+                    break
+
                 val_losses.append(val_loss)
                 val_metrics_list.append(val_metrics)
                 logger.info(f"Epoch {epoch} - Validation loss: {val_loss:.4f}")
                 log_metrics(val_metrics, "val", epoch)
 
-                # Save train metrics too (optional)
-                train_metrics = evaluate_mosei(self.model, self.train_loader, self.device)
-                train_metrics_list.append(train_metrics)
-                log_metrics(train_metrics, "train", epoch)
-
                 # Check if best model
                 if val_loss < self.best_val_loss:
                     self.best_val_loss = val_loss
                     self.best_epoch = epoch
-                    best_model = self.model
-                    best_val_metrics = val_metrics
+                    best_model_state_dict = self.model.state_dict()
                     self.patience_counter = 0
 
                     self.save_checkpoint(epoch, val_loss, is_best=True)
-                    logger.info(f"New best model at epoch {epoch}")
                 else:
                     self.patience_counter += 1
-                    logger.info(f"No improvement for {self.patience_counter} epochs")
+                    logger.info(f"No improvement for {self.patience_counter} evaluation steps.")
 
                     if self.patience_counter >= patience:
                         logger.info(f"Early stopping at epoch {epoch}")
@@ -330,8 +338,12 @@ class Trainer:
 
             # Save regular checkpoint
             if epoch % 5 == 0 or epoch == num_epochs:
-                self.save_checkpoint(epoch, val_loss if epoch % eval_every == 0 else float("inf"))
+                self.save_checkpoint(epoch, val_loss)
 
-        logger.info(f"Training completed. Best model at epoch {self.best_epoch}")
+        logger.info(f"Training completed. Best model found at epoch {self.best_epoch} with validation loss: {self.best_val_loss:.4f}")
+        
+        # Load the best model's state for returning
+        if best_model_state_dict:
+            self.model.load_state_dict(best_model_state_dict)
 
-        return best_model, train_losses, val_losses, train_metrics_list, val_metrics_list
+        return self.model, train_losses, val_losses, train_metrics_list, val_metrics_list
