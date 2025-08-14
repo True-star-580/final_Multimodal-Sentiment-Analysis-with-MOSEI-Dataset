@@ -1,3 +1,4 @@
+#src/training/metrics.py
 import numpy as np
 import torch
 import torch.nn.functional as F
@@ -137,6 +138,10 @@ def get_predictions(model, dataloader, device):
             all_labels.append(labels)
     
     # Concatenate batch results
+    # Handle cases where a batch might be empty or have an unusual shape
+    if not all_preds:
+        return np.array([]), np.array([])
+        
     all_preds = np.concatenate(all_preds)
     all_labels = np.concatenate(all_labels)
 
@@ -155,6 +160,22 @@ def evaluate_mosei(model, dataloader, device):
         dict: Dictionary containing all evaluation metrics.
     """
     all_preds, all_labels = get_predictions(model, dataloader, device)
+    
+    # AMENDED: Add a safeguard to check for NaNs in predictions.
+    # This prevents the script from crashing and instead returns NaN metrics,
+    # clearly indicating a problem with the model's output.
+    if np.isnan(all_preds).any():
+        logger.warning("NaN values detected in model predictions. "
+                       "This is likely due to an unstable training process (exploding gradients). "
+                       "Returning NaN for all metrics.")
+        return {
+            "mae": np.nan,
+            "corr": np.nan,
+            "binary_acc": np.nan,
+            "binary_f1": np.nan,
+            "multiclass_acc": np.nan,
+            "multiclass_f1": np.nan
+        }
     
     # Calculate metrics
     mae = calc_mae(all_preds, all_labels)
