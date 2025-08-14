@@ -41,12 +41,12 @@ def extract_audio_from_video(video_path, audio_output_path):
         logger.error(f"Failed to extract audio from {video_path}: {e}")
         return False
 
-def get_transcript_from_audio(audio_path):
+def get_transcript_from_audio(audio_path, device):
     """Generates a transcript from an audio file using Whisper."""
     try:
         logger.info(f"Transcribing audio from {audio_path}...")
-        # Use a smaller, faster model for quicker inference. Use 'openai/whisper-large-v3' for higher accuracy.
-        pipe = pipeline("automatic-speech-recognition", model="openai/whisper-base", device=DEVICE)
+        # Whisper is multilingual by default and will auto-detect the language
+        pipe = pipeline("automatic-speech-recognition", model="openai/whisper-base", device=device)
         result = pipe(str(audio_path))
         transcript = result['text'].strip()
         logger.info(f"Transcript: '{transcript[:100]}...'")
@@ -62,7 +62,7 @@ def get_text_embedding(text, tokenizer, bert_model, device):
             text,
             padding="max_length",
             truncation=True,
-            max_length=512,  # Standard BERT max length
+            max_length=512,
             return_tensors="pt"
         )
         inputs = {key: val.to(device) for key, val in inputs.items()}
@@ -80,8 +80,6 @@ def run_inference():
     """
     Main function to run inference on a directory of video files.
     """
-    global DEVICE # Use the globally determined device
-
     # 1. Get user input
     model_path_str = input("Enter the path to your trained model checkpoint (.pt): ").strip()
     video_dir_str = input("Enter the path to the directory containing your .mp4 files: ").strip()
@@ -104,8 +102,8 @@ def run_inference():
     logger.info("Loading trained model...")
     model = TransformerFusionModel(
         text_dim=TEXT_EMBEDDING_DIM,
-        audio_dim=0, # Not used in text-only
-        visual_dim=0, # Not used in text-only
+        audio_dim=0, # Not used in this version
+        visual_dim=0, # Not used in this version
         hidden_dim=HIDDEN_DIM,
         num_layers=NUM_TRANSFORMER_LAYERS,
         num_heads=NUM_ATTENTION_HEADS,
@@ -119,8 +117,11 @@ def run_inference():
 
     # 4. Load the feature extractor (BERT)
     logger.info("Loading BERT model for feature extraction...")
-    tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
-    bert_model = BertModel.from_pretrained("bert-base-uncased").to(DEVICE)
+    # --- AMENDED: Use the SAME multilingual model from training ---
+    model_name = "bert-base-multilingual-cased"
+    tokenizer = BertTokenizer.from_pretrained(model_name)
+    bert_model = BertModel.from_pretrained(model_name).to(DEVICE)
+    # --- END AMENDMENT ---
     bert_model.eval()
 
     # 5. Process each video file
@@ -137,23 +138,19 @@ def run_inference():
         video_id = video_path.stem
         temp_audio_path = temp_dir / f"{video_id}.wav"
         
-        # Step A: Extract Audio
         if not extract_audio_from_video(video_path, temp_audio_path):
             continue
-
-        # Step B: Get Transcript
-        transcript = get_transcript_from_audio(temp_audio_path)
+        
+        transcript = get_transcript_from_audio(temp_audio_path, DEVICE)
         if not transcript:
             logger.warning(f"Skipping video {video_id} due to empty transcript.")
+            os.remove(temp_audio_path)
             continue
         
-        # Step C: Get Text Embedding
         text_embedding = get_text_embedding(transcript, tokenizer, bert_model, DEVICE)
         
-        # Step D: Prepare input for the model
         model_input = {"language": text_embedding.to(DEVICE)}
 
-        # Step E: Get Prediction
         with torch.no_grad():
             prediction = model(model_input)
             sentiment_score = prediction.item()
@@ -161,7 +158,6 @@ def run_inference():
         logger.info(f"Video: {video_path.name}, Predicted Sentiment: {sentiment_score:.4f}")
         predictions_data.append({"ID": video_path.name, "Label": sentiment_score})
 
-        # Clean up temporary audio file
         os.remove(temp_audio_path)
 
     # 6. Save results to CSV
@@ -173,7 +169,6 @@ def run_inference():
     else:
         logger.warning("No predictions were made.")
 
-    # Clean up temp directory
     os.rmdir(temp_dir)
 
 if __name__ == "__main__":
