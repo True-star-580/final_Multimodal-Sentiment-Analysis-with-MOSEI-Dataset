@@ -82,15 +82,21 @@ Multimodal-Sentiment-Analysis-with-MOSEI-Dataset/
 ---
 
 ## How to Run on Google Colab
+
+Download this notebook [final_multimal_msa.ipynb](https://github.com/True-star-580/final_Multimodal-Sentiment-Analysis-with-MOSEI-Dataset/blob/main/final_multimal_msa.ipynb). Load it on Google Colab. Set runtime to T4 gpu, a single one will suffice for inference. 
+
+Since the competition dataset is private, Kaggle Username and Token will be required, provide them in the first cell. To get the Token on Kggle, go to your profile on Kaggle, click on 'Settings', under 'API' click on 'Create New Token'. Your username is on the same page (it is not editable).
+
+at the `infererence.py` code block, you will be prompted to load the model and the video files path, provide the paths by pasting directly to the dialog box that pops up, eg the model could be placed at 
 ```
-run this notebook []
-since the competition dataset is private, Kaggle Username and Token will be required, provide them in the first cell. To get the Token on Kggle, go to your profile on Kaggle, click on 'Settings', under 'API' click on 'Create New Token'. Your username is on the same page (it is not editable).
-
-at the infererence.py code block, you will be prompted to load the model and the video files path, provide the paths by pasting directly to the box that pops up, eg the model could be placed at '/content/multimodal_fusion_best.pt'. Press enter and proceed to provide all the required paths. The competition data will be at '/root/.cache/kagglehub/competitions/msa-challenge-at-the-4th-pazhou-ai-competition/Public_Test_Data/Public_Test_Data' but feel free to specify the exact path.
-
-
-
+'/content/multimodal_fusion_best.pt'.
 ```
+Press enter and proceed to provide all the required paths. The competition data will be at 
+```
+'/root/.cache/kagglehub/competitions/msa-challenge-at-the-4th-pazhou-ai-competition/Public_Test_Data/Public_Test_Data'
+```
+ but feel free to specify the exact path.
+
 
 ## License
 
