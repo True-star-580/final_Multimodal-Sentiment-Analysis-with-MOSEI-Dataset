@@ -17,7 +17,7 @@ The core of this project is a multimodal sentiment analysis system that fulfills
 
 ---
 
-## Directory Structure (Submission)
+## Directory Structure
 
 ```
 Multimodal-Sentiment-Analysis-with-MOSEI-Dataset/
@@ -104,9 +104,9 @@ Follow these steps to run the model inference on the competition's public test d
       *Example:*
       ```
       /content/multimodal_fusion_best.pt # for v1 model
-      
       ```
       and
+    
        ```
       /content/finetuned_multilingual_v2.pt # for v2 model 
       ```
