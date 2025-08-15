@@ -10,7 +10,7 @@ The core of this project is a multimodal sentiment analysis system that fulfills
 
 -   **Cross-lingual Capability**: Achieved by creating a unified English-only text space. All Chinese text from the training data (CH-SIMS v2.0) is translated to English using a high-quality translation model (`Helsinki-NLP/opus-mt-zh-en`). This allows a single, powerful English-centric text model to be used for all samples.
 -   **Multimodality**: The final model integrates features from three modalities:
-    -   **Text**: Transcripts are embedded using a pre-trained `bert-base-uncased` model.
+    -   **Text**: Transcripts are embedded using a pre-trained `bert-base-cased` model.
     -   **Audio**: Raw audio waveforms are processed by a pre-trained `Wav2Vec2` model.
     -   **Visual**: Video frames are analyzed by a pre-trained Vision Transformer (ViT) model (`google/vit-base-patch16-224-in21k`).
 -   **Model Explainability**: The model is designed with a modular architecture consisting of three independent "expert" sub-networks (one per modality) and a final fusion head. This allows us to generate a prediction from each modality and visualize its contribution to the final, fused prediction, providing clear insights into the model's decision-making process.
