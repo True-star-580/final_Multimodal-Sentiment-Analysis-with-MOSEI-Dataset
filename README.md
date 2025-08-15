@@ -82,26 +82,9 @@ A multi-stage training strategy was employed to build the final model:
 The final `test_script.py` performs the following for each video in the `Test_Data` directory:
 1.  Loads the final trained model (`model_weights.pt`).
 2.  Extracts text, audio, and visual features on-the-fly.
-3.  Generates a final prediction and saves it to `Test_Results/label_prediction.csv`.
-4.  Generates an **explainability chart** for each video, visualizing the confidence of the Text, Audio, Visual, and Fused predictions in the final outcome. These charts are saved in `Test_Supplements/`.
-
+3.  Generates a final prediction
 ---
 
-## How to Run the Submission
-
-1.  **Prerequisites**: A Linux environment with Python 3.9+, CUDA, and an NVIDIA GPU (16GB VRAM recommended).
-2.  **Installation**:
-    ```bash
-    pip install -r requirements.txt
-    ```
-3.  **Place Data**: Place the private test video files (`.mp4`) into the `Test_Data/` directory.
-4.  **Execute**: Run the main script from within the `submission/` directory.
-    ```bash
-    python test_script.py
-    ```
-5.  **Outputs**:
-    -   Predictions will be saved to `Test_Results/label_prediction.csv`.
-    -   Explainability charts will be saved as PNG files in `Test_Supplements/`.
 
 ## Running the Inference Notebook On Google Colab
 
@@ -109,7 +92,7 @@ Follow these steps to run the model inference on the competition's public test d
 
 ### 1. Environment Setup
 
-1.  **Open in Colab**: Open the [`inference_notebook.ipynb`]([https://github.com/True-star-580/final_Multimodal-Sentiment-Analysis-with-MOSEI-Dataset/blob/main/final_multimal_msa.ipynb](https://github.com/True-star-580/final_Multimodal-Sentiment-Analysis-with-MOSEI-Dataset/blob/main/inference_notebook.ipynb)) notebook in Google Colab.
+1.  **Open in Colab**: Open the [inference_notebook.ipynb]([https://github.com/True-star-580/final_Multimodal-Sentiment-Analysis-with-MOSEI-Dataset/blob/main/final_multimal_msa.ipynb](https://github.com/True-star-580/final_Multimodal-Sentiment-Analysis-with-MOSEI-Dataset/blob/main/inference_notebook.ipynb)) notebook in Google Colab.
 2.  **Select GPU Runtime**: Navigate to **Runtime** > **Change runtime type** and select **T4 GPU** from the dropdown menu. and just run.
 
 
