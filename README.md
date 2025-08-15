@@ -109,18 +109,9 @@ Follow these steps to run the model inference on the competition's public test d
 
 ### 1. Environment Setup
 
-1.  **Open in Colab**: Open the [`final_multimal_msa.ipynb`](https://github.com/True-star-580/final_Multimodal-Sentiment-Analysis-with-MOSEI-Dataset/blob/main/final_multimal_msa.ipynb) notebook in Google Colab.
-2.  **Select GPU Runtime**: Navigate to **Runtime** > **Change runtime type** and select **T4 GPU** from the dropdown menu.
+1.  **Open in Colab**: Open the [`inference_notebook.ipynb`]([https://github.com/True-star-580/final_Multimodal-Sentiment-Analysis-with-MOSEI-Dataset/blob/main/final_multimal_msa.ipynb](https://github.com/True-star-580/final_Multimodal-Sentiment-Analysis-with-MOSEI-Dataset/blob/main/inference_notebook.ipynb)) notebook in Google Colab.
+2.  **Select GPU Runtime**: Navigate to **Runtime** > **Change runtime type** and select **T4 GPU** from the dropdown menu. and just run.
 
-### 2. Kaggle API Credentials
-
-The notebook needs to download the private competition dataset, which requires authentication.
-
-1.  Run the first code cell. You will be prompted to enter your Kaggle username and API token.
-2.  **To find your credentials**:
-    *   Go to your Kaggle Account settings page: `https://www.kaggle.com/settings`.
-    *   Your **Username** is listed on this page.
-    *   Under the **API** section, click **Create New Token**. This will download a `kaggle.json` file containing your token.
 
 ### 3. Execute Inference
 
