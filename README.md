@@ -1,6 +1,7 @@
-# Multimodal Sentiment Analysis with MOSEI Dataset
+# Multimodal Sentiment Analysis
 
-A transformer-based project for multimodal sentiment analysis using the [CMU-MOSEI dataset](http://multicomp.cs.cmu.edu/resources/cmu-mosei-dataset/), combining text, audio, and visual modalities to better understand human sentiment.
+This work is an extention of [JugalGajjar's][https://github.com/JugalGajjar/Multimodal-Sentiment-Analysis-with-MOSEI-Dataset] and [CMU Multimodal Opinion Sentiment and Emotion Intensity ](http://multicomp.cs.cmu.edu/resources/cmu-mosei-dataset/). It is prepared for the following Kaggle competition; [MSA Challenge @ The 4th Pazhou AI Competition](https://www.kaggle.com/competitions/msa-challenge-at-the-4th-pazhou-ai-competition/data?select=Public_Test_Data)
+
 
 ---
 
@@ -114,23 +115,6 @@ pip install -r requirements.txt
 python main.py
 ```
 
----
-
-## Presentation (PPT/Video)
-
-- [Project Paper](https://github.com/JugalGajjar/Multimodal-Sentiment-Analysis-with-MOSEI-Dataset/blob/main/project_paper.pdf)
-- [YouTube Video (Short)](https://youtu.be/stYaQOx14zE?si=m35rxNYSfkhHuerq)
-- [YouTube Video (Detailed)](https://youtu.be/hF3ERyC_iYc?si=nhdp_orkF0e5rEhX)
-
----
-
-## Team Members
-
-- Jugal Gajjar [GitHub](https://github.com/JugalGajjar), [LinkedIn](https://www.linkedin.com/in/jugal-gajjar/)
-- Kaustik Ranaware [GitHub](https://github.com/KAUSTIKR), [LinkedIn](https://www.linkedin.com/in/kaustik/)
-
----
-
 ## License
 
-This project is developed for academic and research purposes only. The model weights and code in this project are released under the [MIT License](https://opensource.org/licenses/MIT).
+This project is released under the [MIT License](https://opensource.org/licenses/MIT).
