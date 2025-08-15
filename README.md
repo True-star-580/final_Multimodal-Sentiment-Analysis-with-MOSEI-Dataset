@@ -103,12 +103,17 @@ Follow these steps to run the model inference on the competition's public test d
     *   **Model Path**: The location of the trained model file.
       *Example:*
       ```
-      /content/multimodal_fusion_best.pt
+      /content/multimodal_fusion_best.pt # for v1 model
+      
+      ```
+      and
+       ```
+      /content/finetuned_multilingual_v2.pt # for v2 model 
       ```
     *   **Test Data Path**: The directory containing the public test data. After downloading via the Kaggle API, the default path is usually:
       *Example:*
       ```
       /root/.cache/kagglehub/competitions/msa-challenge-at-the-4th-pazhou-ai-competition/Public_Test_Data/Public_Test_Data
       ```
-3.  Paste each path into its respective dialog box and press **Enter**. The script will then proceed with inference.
+4.  Paste each path into its respective dialog box and press **Enter**. The script will then proceed with inference.
 
