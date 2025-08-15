@@ -27,6 +27,7 @@ Multimodal-Sentiment-Analysis-with-MOSEI-Dataset/
 ├── src/
 │   ├── data/
 │   │   ├── download.py        # Download MOSEI dataset
+│   │   ├── download_v2.py     # Kaggle processed and raw dataset
 │   │   ├── preprocess.py      # Feature extraction
 │   │   └── dataset.py         # PyTorch dataset classes
 │   ├── models/
@@ -34,9 +35,11 @@ Multimodal-Sentiment-Analysis-with-MOSEI-Dataset/
 │   │   ├── audio.py           # Audio-only models
 │   │   ├── visual.py          # Visual-only models
 │   │   ├── fusion.py          # Multimodal fusion models
+│   │   ├── fusion_v2.py       # FINETUNED Multilingual model
 │   │   └── attention.py       # Cross-attention mechanisms
 │   ├── training/
 │   │   ├── trainer.py         # Training loop
+│   │   ├── trainer_v2.py      # Training v2 Multilingual model
 │   │   └── metrics.py         # Evaluation metrics
 │   └── utils/
 │       ├── logging.py         # Logging utilities
@@ -52,25 +55,6 @@ Multimodal-Sentiment-Analysis-with-MOSEI-Dataset/
 ```
 
 ---
-
-## Dataset: CMU-MOSEI
-
-- 23,500 annotated utterances from 1,000+ speakers
-- Aligned text, audio, and visual data
-- Continuous sentiment score from -3 (very negative) to +3 (very positive)
-
-To download and process the dataset:
-
-```bash
-# Clone and set up the SDK
-git clone https://github.com/CMU-MultiComp-Lab/CMU-MultimodalSDK.git
-cd CMU-MultimodalSDK
-pip install -e .
-
-# Back in project root:
-python src/data/download.py
-python src/data/preprocess.py
-```
 
 ---
 
@@ -97,22 +81,15 @@ python src/data/preprocess.py
 
 ---
 
-## How to Run
-
-### 1. Clone the repository
-```bash
-git clone https://github.com/JugalGajjar/Multimodal-Sentiment-Analysis-with-MOSEI-Dataset.git
-cd Multimodal-Sentiment-Analysis-with-MOSEI-Dataset
+## How to Run on Google Colab
 ```
+run this notebook []
+since the competition dataset is private, Kaggle Username and Token will be required, provide them in the first cell. To get the Token on Kggle, go to your profile on Kaggle, click on 'Settings', under 'API' click on 'Create New Token'. Your username is on the same page (it is not editable).
 
-### 2. Install dependencies
-```bash
-pip install -r requirements.txt
-```
+at the infererence.py code block, you will be prompted to load the model and the video files path, provide the paths by pasting directly to the box that pops up, eg the model could be placed at '/content/multimodal_fusion_best.pt'. Press enter and proceed to provide all the required paths. The competition data will be at '/root/.cache/kagglehub/competitions/msa-challenge-at-the-4th-pazhou-ai-competition/Public_Test_Data/Public_Test_Data' but feel free to specify the exact path.
 
-### 3. Execute main.py
-```bash
-python main.py
+
+
 ```
 
 ## License
