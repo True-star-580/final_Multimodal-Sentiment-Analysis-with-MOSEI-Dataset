@@ -7,4 +7,5 @@ scikit-learn
 transformers
 matplotlib
 seaborn
+langdetect
 tensorboard
