@@ -1,6 +1,6 @@
 # Cross-lingual Multimodal Explainable Sentiment Recognition
 
-This project is a submission for the "MSA Challenge @ The 4th Pazhou AI Competition". It features a robust, multimodal, and explainable model for sentiment analysis on English and Chinese video data. This work is an extention of Jugal Gajjar [GitHub](https://github.com/JugalGajjar). Furthermore, this work would not be possible without the foundational **CMU-MOSEI Dataset** created by the Carnegie Mellon University Multimodal Communication and Machine Learning Laboratory (MultiComp Lab).
+This project is a submission for the "MSA Challenge @ The 4th Pazhou AI Competition". It features a robust, multimodal, and explainable model for sentiment analysis on English and Chinese video data. This work is an extention of Jugal Gajjar [GitHub](https://github.com/JugalGajjar). Furthermore, this work would not be possible without the foundational [**CMU-MOSEI Dataset**](http://multicomp.cs.cmu.edu/resources/cmu-mosei-dataset/) created by the Carnegie Mellon University Multimodal Communication and Machine Learning Laboratory (MultiComp Lab).
 
 ---
 
