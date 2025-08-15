@@ -1,6 +1,6 @@
 # Multimodal Sentiment Analysis
 
-This work is an extention of [JugalGajjar's][https://github.com/JugalGajjar/Multimodal-Sentiment-Analysis-with-MOSEI-Dataset] and [CMU Multimodal Opinion Sentiment and Emotion Intensity ](http://multicomp.cs.cmu.edu/resources/cmu-mosei-dataset/). It is prepared for the following Kaggle competition; [MSA Challenge @ The 4th Pazhou AI Competition](https://www.kaggle.com/competitions/msa-challenge-at-the-4th-pazhou-ai-competition/data?select=Public_Test_Data)
+This work is an extention of Jugal Gajjar [GitHub](https://github.com/JugalGajjar) and [CMU Multimodal Opinion Sentiment and Emotion Intensity ](http://multicomp.cs.cmu.edu/resources/cmu-mosei-dataset/). It is prepared for the following Kaggle competition; [MSA Challenge @ The 4th Pazhou AI Competition](https://www.kaggle.com/competitions/msa-challenge-at-the-4th-pazhou-ai-competition/data?select=Public_Test_Data)
 
 
 ---
