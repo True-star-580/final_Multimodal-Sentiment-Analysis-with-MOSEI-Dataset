@@ -92,7 +92,7 @@ Follow these steps to run the model inference on the competition's public test d
 
 ### 1. Environment Setup
 
-1.  **Open in Colab**: Open the [inference_notebook.ipynb]([https://github.com/True-star-580/final_Multimodal-Sentiment-Analysis-with-MOSEI-Dataset/blob/main/final_multimal_msa.ipynb](https://github.com/True-star-580/final_Multimodal-Sentiment-Analysis-with-MOSEI-Dataset/blob/main/inference_notebook.ipynb)) notebook in Google Colab.
+1.  **Open in Colab**: Open the [inference_notebook.ipynb](https://github.com/True-star-580/final_Multimodal-Sentiment-Analysis-with-MOSEI-Dataset/blob/main/inference_notebook.ipynb) notebook in Google Colab.
 2.  **Select GPU Runtime**: Navigate to **Runtime** > **Change runtime type** and select **T4 GPU** from the dropdown menu. and just run.
 
 
