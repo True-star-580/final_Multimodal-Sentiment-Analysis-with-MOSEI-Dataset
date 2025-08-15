@@ -79,8 +79,8 @@ A multi-stage training strategy was employed to build the final model:
 
 ### 4. Inference and Explainability
 
-The final `test_script.py` performs the following for each video in the `Test_Data` directory:
-1.  Loads the final trained model (`model_weights.pt`).
+The final inference notebook performs the following for each video in the `Test_Data` directory:
+1.  Loads the final trained model (`model weights .pt`).
 2.  Extracts text, audio, and visual features on-the-fly.
 3.  Generates a final prediction
 ---
